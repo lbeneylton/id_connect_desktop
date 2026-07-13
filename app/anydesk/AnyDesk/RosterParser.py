@@ -91,3 +91,6 @@ class AnydeskParser():
             f'{h["id"]},{h["id"]},{h["alias"]},;'
             for h in hosts
         )
+
+
+parser = AnydeskParser()
