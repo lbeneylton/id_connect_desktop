@@ -1,6 +1,6 @@
 import customtkinter as ctk
 
-from service.api import buscar_computadores
+from service.api import api
 from store.pc_store import pc_store
 
 
@@ -73,7 +73,7 @@ class FindPc(ctk.CTkFrame):
 
         self.ultima_busca = texto.strip().upper()
 
-        buscar_computadores(
+        api.buscar_computadores(
             texto.strip().upper(),
             self.receber_resultado
         )

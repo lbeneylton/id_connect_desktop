@@ -3,28 +3,66 @@ import threading
 import time
 
 
-API_URL = "https://ids-connect.onrender.com/alias"
+API_URL = "https://ids-connect.onrender.com"
 
 
-def buscar_computadores(texto, callback):
-    def tarefa():
-        inicio = time.time()
+class Api:
+    def __init__(self, api_url=API_URL):
+        self.api_url = api_url
 
-        try:
-            resposta = requests.get(
-                API_URL,
-                params={"texto": texto},
-                timeout=10
-            )
+    def buscar_computadores(self, texto: str, callback):
+        def tarefa():
+            inicio = time.time()
 
-            print("Tempo API:", time.time() - inicio)
+            try:
+                resposta = requests.get(
+                    f"{self.api_url}/alias",
+                    params={"texto": texto}
+                )
 
-            resultado = resposta.json().get("aliases", [])
+                print("Tempo API:", time.time() - inicio)
 
-        except Exception as erro:
-            print(erro)
-            resultado = []
+                resultado = resposta.json().get("aliases", [])
 
-        callback(resultado)
+            except Exception as erro:
+                print(erro)
+                resultado = []
 
-    threading.Thread(target=tarefa, daemon=True).start()
+            callback(resultado)
+
+        threading.Thread(target=tarefa, daemon=True).start()
+
+    def importar_all(self):
+        def tarefa():
+            inicio = time.time()
+
+            try:
+                resposta = requests.get("/anydesk/import")
+
+                print("Tempo API:", time.time() - inicio)
+            except Exception as erro:
+                print(str(erro))
+
+        threading.Thread(target=tarefa, daemon=True).start()
+
+    def exportar_all(self, pcs: list):
+        def tarefa():
+            inicio = time.time()
+
+            try:
+                resposta = requests.post(
+                    "/anydesk/export",
+                    params={"hosts": pcs}
+                )
+
+                print("Tempo API:", time.time() - inicio)
+
+                return True
+
+            except Exception as erro:
+                print(str(erro))
+
+        threading.Thread(target=tarefa, daemon=True).start()
+
+
+api = Api()
