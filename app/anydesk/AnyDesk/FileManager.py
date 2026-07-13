@@ -1,5 +1,6 @@
 import os
 import shutil
+import json
 from datetime import datetime
 
 
@@ -13,7 +14,6 @@ class FileManager:
             return f.readlines()
 
     def write_atomic(self, lines: list[str]) -> None:
-        """escreve arquivo temporario"""
         tmp = self.user_conf + ".tmp"
 
         with open(tmp, "w", encoding="utf-8") as f:
@@ -33,6 +33,15 @@ class FileManager:
 
         return path
 
+    def write_json(self, path: str, data: list[dict]) -> None:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
 
-PATH_CONF = os.path.expanduser(r"~\AppData\Roaming\AnyDesk\user.conf")
-file_manager = FileManager(PATH_CONF)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+    def generate_export_path(self, folder: str) -> str:
+        os.makedirs(folder, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+
+        return os.path.join(folder, f"rosters_{timestamp}.json")

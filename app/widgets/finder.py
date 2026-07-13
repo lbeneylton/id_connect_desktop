@@ -17,8 +17,40 @@ class FindPc(ctk.CTkFrame):
             self._verificar_busca
         )
 
-        self._criar_label()
+        self._criar_topo()
         self._criar_entry()
+
+    def _criar_topo(self):
+        topo = ctk.CTkFrame(self, fg_color="transparent")
+        topo.pack(fill="x", padx=15, pady=(15, 0))
+
+        self.label_name = ctk.CTkLabel(
+            topo,
+            text="Nome PC",
+            font=("Arial", 20, "bold")
+        )
+        self.label_name.pack(side="left")
+
+        botoes = ctk.CTkFrame(topo, fg_color="transparent")
+        botoes.pack(side="right")
+
+        self.btn_exportar = ctk.CTkButton(
+            botoes,
+            text="↑",
+            width=35,
+            height=35,
+            command=self.exportar
+        )
+        self.btn_exportar.pack(side="left", padx=(0, 5))
+
+        self.btn_importar = ctk.CTkButton(
+            botoes,
+            text="↓",
+            width=35,
+            height=35,
+            command=self.importar
+        )
+        self.btn_importar.pack(side="left")
 
     def _criar_label(self):
         self.label_name = ctk.CTkLabel(
@@ -83,3 +115,9 @@ class FindPc(ctk.CTkFrame):
             0,
             lambda: pc_store.set_pcs(pcs)
         )
+
+    def exportar(self):
+        print("Exportar")
+
+    def importar(self):
+        print("Importar")

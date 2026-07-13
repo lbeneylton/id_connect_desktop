@@ -9,6 +9,7 @@ ctk.set_default_color_theme("blue")
 app = ctk.CTk()
 app.title("Host - IDs")
 app.geometry("400x600")
+app.resizable(width=False, height=True)
 
 
 buscador = FindPc(app)
