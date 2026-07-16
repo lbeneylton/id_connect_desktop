@@ -50,7 +50,8 @@ class Computadores(ctk.CTkFrame):
         card = Card(
             self.scroll,
             alias=computador["alias"],
-            user_id=computador["id_connect"]
+            user_id=computador["id_connect"],
+            provider=computador["provider"]
         )
 
         card.pack(

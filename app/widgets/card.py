@@ -1,27 +1,27 @@
 import customtkinter as ctk
 
-
 class Card(ctk.CTkFrame):
-    def __init__(self, master, alias, user_id):
+    def __init__(self, master, alias: str, user_id: str, provider: str):
         super().__init__(master, corner_radius=15, fg_color="#242424")
 
         self.user_id = user_id
+        self.provider = provider
 
         ctk.CTkLabel(
             self,
             text=alias,
             font=("Arial", 18, "bold")
-        ).pack(anchor="w", padx=15, pady=(15, 5))
+        ).pack(anchor="w", padx=15, pady=(10, 5))
 
         self.id_label = ctk.CTkLabel(
             self,
-            text=user_id,
+            text=f"{self.provider.capitalize()}: {self.user_id}",
             font=("Arial", 16),
             anchor="w",          # Alinha o texto à esquerda
             corner_radius=6,
             fg_color="transparent",
             padx=10,
-            pady=6,
+            pady=2,
             cursor="hand2"
         )
 
@@ -48,4 +48,9 @@ class Card(ctk.CTkFrame):
         texto = self.id_label.cget("text")
         self.id_label.configure(text="✅ Copiado!")
 
-        self.after(300, lambda: self.id_label.configure(text=texto))
+        self.after(
+            300, 
+            lambda: self.id_label.configure(
+                text=f"{self.provider}: {self.user_id}"
+            )
+        )
