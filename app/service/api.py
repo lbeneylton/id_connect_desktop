@@ -105,101 +105,45 @@ class ApiAccess:
                 )
 
                 aliases = dados.get("aliases", [])
+                
+                callback(aliases)
 
-                callback(True, aliases)
 
             except Exception as erro:
-
                 print("Erro import:", erro)
 
-                callback(False, [])
+
 
         self._executar_thread(
             tarefa,
             "import-anydesk"
         )
 
-    def exportar_all(self, aliases: list[dict], callback):
+    def exportar_all(self, aliases: list[dict], callback = lambda x: print(x)):
 
         def tarefa():
-
             try:
 
-                self._post_json(
+                payload = {
+                    "aliases": aliases
+                }
+
+                resposta = self._post_json(
                     f"{self.api_url}/anydesk/export",
-                    params={
-                        "aliases": json.dumps(aliases)
-                    }
+                    json=payload
                 )
 
-                callback(True)
+                callback(resposta)
 
             except Exception as erro:
-
                 print("Erro export:", erro)
 
-                callback(False)
 
         self._executar_thread(
             tarefa,
             "export-anydesk"
         )
 
-# --------------------------
-# Exemplo de uso
-# --------------------------
-
 
 api = ApiAccess()
 
-
-# computadores = [
-#     {
-#         "alias": "STRING",
-#         "id_connect": 1235,
-#         "provider": "ANY"
-#     },
-#     {
-#         "alias": "STRINGS",
-#         "id_connect": 1235435,
-#         "provider": "ANY"
-#     },
-#     {
-#         "alias": "STRINGSGT",
-#         "id_connect": 12354356,
-#         "provider": "ANY"
-#     }
-# ]
-
-
-# def retorno_export(resultado):
-#     print(
-#         "Resposta export:",
-#         resultado
-#     )
-
-
-# api.exportar_all(
-#     computadores,
-#     retorno_export
-# )
-
-
-# def retorno_import(lista):
-
-#     print(
-#         "Computadores importados:"
-#     )
-
-#     for pc in lista:
-#         print(pc)
-
-
-# api.importar_all(
-#     retorno_import
-# )
-
-
-# # apenas para teste em script puro
-# # evita que o programa termine antes das threads
-# time.sleep(5)

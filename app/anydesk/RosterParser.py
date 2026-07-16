@@ -1,5 +1,5 @@
 """Interpreta e monta a linha do arquivo"""
-from Host import HostDTO
+from app.anydesk.Host import HostDTO
 
 
 class AnydeskParser():

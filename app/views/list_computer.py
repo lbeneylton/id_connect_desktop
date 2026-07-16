@@ -1,7 +1,7 @@
 import customtkinter as ctk
 
-from store.pc_store import pc_store
-from widgets.card import Card
+from app.store.pc_store import pc_store
+from app.widgets.card import Card
 
 
 class Computadores(ctk.CTkFrame):

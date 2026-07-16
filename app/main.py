@@ -1,6 +1,6 @@
 import customtkinter as ctk
-from views.list_computer import Computadores
-from widgets.finder import FindPc
+from app.views.list_computer import Computadores
+from app.widgets.finder import FindPc
 
 # Configurações do tema
 ctk.set_appearance_mode("dark")  # dark, light ou system

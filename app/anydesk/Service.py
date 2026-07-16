@@ -1,11 +1,10 @@
-import os
 import json
 
-from FileManager import FileManager, file_manager
-from RosterParser import AnydeskParser, parser
-from Host import HostDTO
+from app.anydesk.FileManager import FileManager, file_manager
+from app.anydesk.RosterParser import AnydeskParser, parser
+from app.anydesk.Host import HostDTO
 
-from service.api import  ApiAccess, api
+from app.service.api import  ApiAccess, api
 
 
 class AnydeskService:
@@ -58,58 +57,90 @@ class AnydeskService:
             items,
             key=lambda x: x.alias.upper()
         )
-        print(sorted_items)
-
-        # MANDAR PARA API
-        # self.api.exportar_all(sorted_items)        
-
-
-        return True
-
-    def import_json(self, file: str) -> bool:
-
-        # RECEBER DA API
-        self.fm.backup()
-
-        try:
-            with open(file, "r", encoding="utf-8") as f:
-                new_items = json.load(f)
-        except FileNotFoundError:
+    
+        
+        try:  
+            formated = []
+            for item in sorted_items:
+                formated.append(
+                    {
+                        "id_connect": int(item.id_connect),
+                        "alias": item.alias,
+                        "provider": item.provider,
+                    }
+                )
+            
+            self.api.exportar_all(formated)        
+        except Exception as e:
+            print(str(e))
             return False
 
-        # valid, msg = self.validator.validate_rosters(new_items)
-        # if not valid:
-        #     print(msg)
-        #     return False
-
-        existing = self._get_rosters()
-
-        # merged = {
-        #     i["id"]: i["alias"] for i in existing
-        # }
-
-        # merged.update({
-        #     i["id"]: i["alias"] for i in new_items
-        # })
-
-        # sorted_rosters = sorted(
-        #     [{"id": k, "alias": v} for k, v in merged.items()],
-        #     key=lambda x: x["alias"].lower()
-        # )
-
-        # formatted = self.parser.build_roster_line(sorted_rosters)
-
-        new_lines = [
-            l for l in self.fm.read_lines()
-            if not self.parser.is_roster_line(l)
-        ]
-
-       #  new_lines.append(f"ad.roster.items={formatted}\n")
-
-        self.fm.write_atomic(new_lines)
-
         return True
+
+
+    def import_hosts(self):
+
+        self.fm.backup()
+
+        def processar_importacao(items: dict):
+            new_items = [
+                HostDTO(**item)
+                for item in items
+            ]
+
+            try:
+                for item in new_items:
+                    print(item, "\n\n")
+
+                existing = self._get_rosters()
+
+                merged = {
+                    item.id_connect: item
+                    for item in existing
+                }
+
+                for item in new_items:
+                    merged[item.id_connect] = item
+
+
+                sorted_rosters = sorted(
+                    merged.values(),
+                    key=lambda x: x.alias.lower()
+                )
+
+
+                formatted = self.parser.build_roster_line(
+                    sorted_rosters
+                )
+
+
+                new_lines = [
+                    l for l in self.fm.read_lines()
+                    if not self.parser.is_roster_line(l)
+                ]
+
+
+                new_lines.append(
+                    f"ad.roster.items={formatted}\n"
+                )
+
+
+                self.fm.write_atomic(new_lines)
+
+                return True
+
+
+            except Exception as erro:
+                print("Erro import hosts:", erro)
+                return False 
+
+
+        # chama API e espera retorno
+        self.api.importar_all(
+            processar_importacao
+        )
+
+
 
 
 service = AnydeskService()
-service.export_hosts()
