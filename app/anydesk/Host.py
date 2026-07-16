@@ -5,5 +5,5 @@ from dataclasses import dataclass
 class HostDTO:
     id_connect: int
     alias: str
-    provider = "ANY"
+    provider:str = "ANY"
 

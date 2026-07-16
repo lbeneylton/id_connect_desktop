@@ -3,10 +3,8 @@ import os
 from AnyDesk.RosterParser import AnydeskParser
 from AnyDesk.FileManager import FileManager
 from AnyDesk.Validator import JsonValidator
-from AnyDesk.NewRepo import AnydeskRepository
 
 
-PATH_CONF = os.path.expanduser(r"~\AppData\Roaming\AnyDesk\user.conf")
 
 
 def menu():
