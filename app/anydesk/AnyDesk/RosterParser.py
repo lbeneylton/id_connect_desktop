@@ -1,5 +1,4 @@
-# formato do item do roster:
-#   host0, host1, code
+"""Interpreta e monta a linha do arquivo"""
 from anydesk.AnyDesk.Host import HostDTO
 
 
@@ -91,10 +90,10 @@ class AnydeskParser():
 
     def build_roster_line(self, hosts: list[HostDTO]) -> str:
         """formato do roster: id,id,alias,;"""
-
-        return "".join(
-            f'{h.id_connect},{h.id_connect},{h.alias},;'
+        rosters = "".join(
+            f"{h.id_connect},{h.id_connect},{h.alias},;"
             for h in hosts
         )
+        return f"{self.ROSTER_PREFIX}{rosters}"
 
 parser = AnydeskParser()
