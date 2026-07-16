@@ -1,9 +1,40 @@
+import time
+import threading
 import customtkinter as ctk
 
-from service.api import api
-from store.pc_store import pc_store
+from app.anydesk.Service import service
+from app.service.api import api
+from app.store.pc_store import pc_store
 
 
+class LoadingDialog(ctk.CTkToplevel):
+    def __init__(self, master, texto):
+        super().__init__(master)
+
+        self.title("")
+        self.geometry("300x120")
+        self.resizable(False, False)
+
+        self.label = ctk.CTkLabel(
+            self,
+            text=texto,
+            font=("Arial", 16)
+        )
+        self.label.pack(expand=True)
+
+        self.update_idletasks()
+
+        x = master.winfo_rootx() + (
+            master.winfo_width() // 2
+        ) - 150
+
+        y = master.winfo_rooty() + (
+            master.winfo_height() // 2
+        ) - 60
+
+        self.geometry(f"+{x}+{y}")
+
+        self.grab_set()
 class FindPc(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -11,6 +42,9 @@ class FindPc(ctk.CTkFrame):
         self.timer_busca = None
         self.texto_busca = ctk.StringVar()
         self.ultima_busca = None
+        
+        self.loading = None
+        self.loading_start = 0
 
         self.texto_busca.trace_add(
             "write",
@@ -20,20 +54,25 @@ class FindPc(ctk.CTkFrame):
         self._criar_topo()
         self._criar_entry()
 
-    def _criar_topo(self):
-        topo = ctk.CTkFrame(self, fg_color="transparent")
-        topo.pack(fill="x", padx=15, pady=(15, 0))
-
+    # ---------------------
+    # Auxiliares 
+    # ---------------------
+    def _criar_label(self, master):
+        """Cria Label no top"""
         self.label_name = ctk.CTkLabel(
-            topo,
+            master,
             text="Nome PC",
             font=("Arial", 20, "bold")
         )
+        
         self.label_name.pack(side="left")
-
-        botoes = ctk.CTkFrame(topo, fg_color="transparent")
+    
+    def _criar_botoes(self, master):
+        # Frame para os botoes
+        botoes = ctk.CTkFrame(master, fg_color="transparent")
         botoes.pack(side="right")
 
+        # Botão Exportar
         self.btn_exportar = ctk.CTkButton(
             botoes,
             text="↑",
@@ -43,6 +82,7 @@ class FindPc(ctk.CTkFrame):
         )
         self.btn_exportar.pack(side="left", padx=(0, 5))
 
+        # Botão Importar
         self.btn_importar = ctk.CTkButton(
             botoes,
             text="↓",
@@ -51,21 +91,17 @@ class FindPc(ctk.CTkFrame):
             command=self.importar
         )
         self.btn_importar.pack(side="left")
+    
+    def _criar_topo(self):
+        """Cria linha com nome e botões"""
+        topo = ctk.CTkFrame(self, fg_color="transparent")
+        topo.pack(fill="x", padx=15, pady=(15, 0))
 
-    def _criar_label(self):
-        self.label_name = ctk.CTkLabel(
-            self,
-            text="Nome PC",
-            font=("Arial", 20, "bold")
-        )
-
-        self.label_name.pack(
-            anchor="w",
-            padx=15,
-            pady=(15, 0)
-        )
+        self._criar_label(topo)
+        self._criar_botoes(topo)
 
     def _criar_entry(self):
+        """Cria a entrada para pesquisa"""
         self.name_pc = ctk.CTkEntry(
             self,
             placeholder_text="Digite o nome do PC",
@@ -80,7 +116,11 @@ class FindPc(ctk.CTkFrame):
             pady=10
         )
 
+    # ---------------------
+    # Busca dos computadores
+    # ---------------------
     def _verificar_busca(self, *args):
+        """Verifica se faz a busca"""
         texto = self.texto_busca.get().strip()
 
         # cancela timer anterior
@@ -116,8 +156,124 @@ class FindPc(ctk.CTkFrame):
             lambda: pc_store.set_pcs(pcs)
         )
 
+    # -----------------
+    # Exportação
+    # -----------------
+    def _fim_exportacao(self, sucesso):
+        tempo_minimo = 1.0  # segundos
+
+        tempo_passado = time.time() - self.loading_start
+
+        if tempo_passado < tempo_minimo:
+            espera = int((tempo_minimo - tempo_passado) * 1000)
+
+            self.after(
+                espera,
+                lambda: self._fim_exportacao(sucesso)
+            )
+            return        
+        
+        
+        if self.loading:
+            self.loading.grab_release()
+            self.loading.destroy()
+            self.loading = None
+
+        self.btn_exportar.configure(state="normal")
+        self.btn_importar.configure(state="normal")
+
+        if sucesso:
+            print("Exportado")
+            return 
+        else:
+            print("Erro")
+
+    def _exportar_thread(self):
+        try:
+            sucesso = service.export_hosts()
+            
+        except Exception as e:
+            print("Erro exportação:", e)
+            sucesso = False
+
+        self.after(
+            0,
+            lambda: self._fim_exportacao(sucesso)
+        )
+
     def exportar(self):
-        print("Exportar")
+        self.btn_exportar.configure(state="disabled")
+        self.btn_importar.configure(state="disabled")
+        
+        self.loading_start = time.time()
+        
+        self.loading = LoadingDialog(
+            self, 
+            "Exportando hosts..."
+        )
+
+        threading.Thread(
+            target=self._exportar_thread,
+            daemon=True
+        ).start()
+        
+        
+    # -----------------
+    # Importação
+    # -----------------        
+    def _fim_importacao(self, sucesso):
+        tempo_minimo = 1.0  # segundos
+
+        tempo_passado = time.time() - self.loading_start
+
+        if tempo_passado < tempo_minimo:
+            espera = int((tempo_minimo - tempo_passado) * 1000)
+
+            self.after(
+                espera,
+                lambda: self._fim_importacao(sucesso)
+            )
+            return
+        
+        if self.loading:
+            self.loading.grab_release()
+            self.loading.destroy()
+            self.loading = None
+
+        self.btn_exportar.configure(state="normal")
+        self.btn_importar.configure(state="normal")
+
+        if sucesso:
+            print("Importado")
+        else:
+            print("Erro") 
+        
+        
+    def _importar_thread(self):
+        try:
+            sucesso = service.import_hosts()
+
+        except Exception as e:
+            print("Erro importação:", e)
+            sucesso = False
+
+        self.after(
+            0,
+            lambda: self._fim_importacao(sucesso)
+        )
 
     def importar(self):
-        print("Importar")
+        self.btn_exportar.configure(state="disabled")
+        self.btn_importar.configure(state="disabled")
+        
+        self.loading_start = time.time()
+        
+        self.loading = LoadingDialog(
+            self, 
+            "Importando hosts..."
+        )
+
+        threading.Thread(
+            target=self._importar_thread,
+            daemon=True
+        ).start()
