@@ -1,5 +1,6 @@
 # formato do item do roster:
 #   host0, host1, code
+from anydesk.AnyDesk.Host import HostDTO
 
 
 class AnydeskParser():
@@ -34,14 +35,14 @@ class AnydeskParser():
 
         return True
 
-    def _extract_rosters(self, rosters: str) -> list[str]:
+    def _extract_rosters(self, line_rosters: str) -> list[str]:
         """Converte da linha de strings para lista de rosters
 
             list[roster1, roster2, ...]"""
-        return [r.strip() for r in rosters.split(";") if r.strip()]
+        return [r.strip() for r in line_rosters.split(";") if r.strip()]
 
-    def _parse_host(self, roster: str) -> dict | None:
-        """Retorna o id e alias de um roster
+    def _parse_host(self, roster: str) -> HostDTO | None:
+        """Retorna o objeto de roster
         """
         parts = []
         for p in roster.split(","):
@@ -50,10 +51,11 @@ class AnydeskParser():
         if not self._is_valid_host(parts):
             return None
 
-        return {
-            "id": parts[0],
-            "alias": parts[2]
-        }
+        return HostDTO(
+            id_connect=parts[0],
+            alias =parts[2]
+        ) 
+       
 
     # -----------------------
     # METODOS PUBLICOS
@@ -62,7 +64,7 @@ class AnydeskParser():
         """Retorna se é a linha dos rosters"""
         return line.startswith(self.ROSTER_PREFIX)
 
-    def parse_roster_line(self, line: str) -> tuple[str, list[dict]] | None:
+    def parse_roster_line(self, line: str) -> tuple[str, list[HostDTO]] | None:
         """
             Verifica se é a linha de rosters<br>
             Corta a linha de rosters<br>
@@ -70,12 +72,15 @@ class AnydeskParser():
             Analisa as partes do host (Verificando o formato )<br>
             Adiciona o dicionario (id, alias) numa lista<br>
             Retorna essa lista analisada"""
+
+        # Verifica se é a linha Host do AnyDesk
         if not self.is_roster_line(line):
             return None
 
+        # Quebra a linha em chave e valores
         key, values = self._split_key_value(line)
 
-        parsed = []
+        parsed = [] # Lista de objetos Hosts
         for item in self._extract_rosters(values):
             roster = self._parse_host(item)
 
@@ -84,10 +89,12 @@ class AnydeskParser():
 
         return key, parsed
 
-    def build_roster_line(self, hosts: list[dict]) -> str:
+    def build_roster_line(self, hosts: list[HostDTO]) -> str:
         """formato do roster: id,id,alias,;"""
 
         return "".join(
-            f'{h["id"]},{h["id"]},{h["alias"]},;'
+            f'{h.id_connect},{h.id_connect},{h.alias},;'
             for h in hosts
         )
+
+parser = AnydeskParser()
