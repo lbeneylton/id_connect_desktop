@@ -1,6 +1,10 @@
+from app.logger import logger
 import customtkinter as ctk
 from app.views.list_computer import Computadores
 from app.widgets.finder import FindPc
+
+# Configura a exibição de logs padrão
+
 
 # Configurações do tema
 ctk.set_appearance_mode("dark")  # dark, light ou system

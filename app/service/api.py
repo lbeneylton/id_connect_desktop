@@ -46,7 +46,7 @@ class ApiAccess:
 
         return resposta.json()
 
-    def buscar_computadores(self, texto: str, callback):
+    def buscar_computadores(self, texto: str, callback= lambda x: logger.info(x)):
 
         with self.lock:
             self.busca_id += 1
@@ -93,7 +93,7 @@ class ApiAccess:
             "busca-alias"
         )
 
-    def importar_all(self, callback):
+    def importar_all(self, callback= lambda x: logger.info(x)):
 
         def tarefa():
 

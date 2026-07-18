@@ -10,4 +10,5 @@ dist/
 
 main.spec
 
-backup/
+backups/
+logs/

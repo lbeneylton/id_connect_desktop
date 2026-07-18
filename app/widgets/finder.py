@@ -1,10 +1,13 @@
 import time
 import threading
+import logging
 import customtkinter as ctk
 
 from app.anydesk.Service import service
 from app.service.api import api
 from app.store.pc_store import pc_store
+
+logger = logging.getLogger(__name__)
 
 
 class LoadingDialog(ctk.CTkToplevel):
@@ -183,17 +186,17 @@ class FindPc(ctk.CTkFrame):
         self.btn_importar.configure(state="normal")
 
         if sucesso:
-            print("Exportado")
+            logger.info("Exportação concluída com sucesso.")
             return 
         else:
-            print("Erro")
+            logger.error("Erro ao exportar os computadores.")
 
     def _exportar_thread(self):
         try:
             sucesso = service.export_hosts()
             
         except Exception as e:
-            print("Erro exportação:", e)
+            logger.exception(f"Erro exportação: {e}")
             sucesso = False
 
         self.after(
@@ -244,9 +247,9 @@ class FindPc(ctk.CTkFrame):
         self.btn_importar.configure(state="normal")
 
         if sucesso:
-            print("Importado")
+            logger.info("Importação concluída com sucesso.")
         else:
-            print("Erro") 
+            logger.error("Erro ao importar os computadores.")
         
         
     def _importar_thread(self):
@@ -254,7 +257,7 @@ class FindPc(ctk.CTkFrame):
             sucesso = service.import_hosts()
 
         except Exception as e:
-            print("Erro importação:", e)
+            logger.exception(f"Erro importação: {e}")
             sucesso = False
 
         self.after(
