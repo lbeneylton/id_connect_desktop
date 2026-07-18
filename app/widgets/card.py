@@ -1,16 +1,20 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from CTkMessagebox import CTkMessagebox
+
+from app.store.pc_store import pc_store
+from app.service import api
 
 
 class Card(ctk.CTkFrame):
-    def __init__(self, master, alias: str, user_id: str, provider: str, on_delete=None):
+    def __init__(self, master, alias: str, id_connect: str, provider: str):
         super().__init__(master, corner_radius=15, fg_color="#242424")
 
-        self.user_id = user_id
+        self.id_connect = id_connect
         self.provider = provider
         self.alias = alias
-        self.on_delete = on_delete
+        
+        self.store = pc_store
+        self.api = api
 
         # Linha superior
         top = ctk.CTkFrame(self, fg_color="transparent")
@@ -37,7 +41,7 @@ class Card(ctk.CTkFrame):
 
         self.id_label = ctk.CTkLabel(
             self,
-            text=f"{self.provider.capitalize()}: {self.user_id}",
+            text=f"{self.provider.capitalize()}: {self.id_connect}",
             font=("Arial", 16),
             anchor="w",
             corner_radius=6,
@@ -67,9 +71,8 @@ class Card(ctk.CTkFrame):
         )
 
         if msg.get() == "Apagar":
-            if self.on_delete:
-                self.on_delete(self)
-
+            self._apagar_api(int(self.id_connect))
+            self.store.del_pc(int(self.id_connect))
             self.destroy()
 
     def on_enter(self, event):
@@ -80,13 +83,16 @@ class Card(ctk.CTkFrame):
 
     def copy_id(self, event):
         self.clipboard_clear()
-        self.clipboard_append(self.user_id)
+        self.clipboard_append(self.id_connect)
 
         self.id_label.configure(text="✅ Copiado!")
 
         self.after(
             300,
             lambda: self.id_label.configure(
-                text=f"{self.provider.capitalize()}: {self.user_id}"
+                text=f"{self.provider.capitalize()}: {self.id_connect}"
             )
         )
+        
+    def _apagar_api(self, id_connect: int):
+        self.api.api.apagar_alias

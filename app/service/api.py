@@ -140,6 +140,10 @@ class ApiAccess:
         return self._post_json(f"{self.api_url}/alias/export", json=payload)
 
 
+
+    def apagar_alias(self, id):
+        pass
+
 api = ApiAccess()
 
 
