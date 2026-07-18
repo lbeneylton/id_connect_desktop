@@ -35,10 +35,12 @@ class PeerManager:
 
                 alias = data.get("options", {}).get("alias")
                 peer_id = int(os.path.splitext(filename)[0])
+                
+                logger.info(f"\nalias: {alias}\nid: {peer_id}")
 
                 peers.append(
                     HostDTO(
-                        alias=alias or str(peer_id),
+                        alias=alias,
                         id_connect=peer_id,
                         provider="RUST",
                     )

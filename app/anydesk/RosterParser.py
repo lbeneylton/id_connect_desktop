@@ -133,7 +133,6 @@ class AnydeskParser:
             f"{h.id_connect},{h.id_connect},{h.alias},;"
             for h in hosts
         )
-        return f"{self.ROSTER_PREFIX}{rosters}"
+        return f"{self.ROSTER_PREFIX}{rosters}"        
 
-
-parser = AnydeskParser()
+parser = AnydeskParser()

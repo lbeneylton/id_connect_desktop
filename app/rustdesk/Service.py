@@ -49,7 +49,6 @@ class RustdeskService:
             return None
 
     def _send_hosts(self, hosts: list[HostDTO]) -> bool:
-        
         # Cria o payload apenas se alias valido
         payload = [
             host.to_dict()
@@ -65,7 +64,6 @@ class RustdeskService:
             return True
 
         except Exception:
-            
             logger.exception("Erro ao exportar hosts para a API.")
             return False
 

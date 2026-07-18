@@ -41,13 +41,9 @@ class AnydeskService:
         self.parser = parser
         self.fm = file_manager
         self.api = api
-
-    def get_local_hosts(self) -> list[HostDTO]:
-        """Lê o arquivo local de configuração e extrai a lista de hosts parseados.
-
-        Returns:
-            list[HostDTO]: Lista de hosts obtidos do arquivo local.
-        """
+    
+    
+    def _load_hosts(self) -> list[HostDTO]:
         try:
             lines = self.fm.read_lines()
             for line in lines:
@@ -65,35 +61,35 @@ class AnydeskService:
         logger.warning("Nenhum host local encontrado para exportação.")
         return []
 
-    def export_hosts(self) -> bool:
-        """Exporta os hosts locais cadastrados no arquivo .conf para o servidor.
-
-        Returns:
-            bool: True se a exportação foi bem-sucedida, False caso contrário.
-        """
-        hosts = self.get_local_hosts()
-        if not hosts:
-            logger.warning("Nenhum host local encontrado para exportação.")
-            return False
-
+    def _send_hosts(self, hosts: list[HostDTO]) -> bool:
+        # Cria o payload apenas se alias valido
+        payload = [
+            host.to_dict()
+            for host in hosts
+            if host.alias_valido
+        ]
+        
         try:
-            # Ordena alfabeticamente pelo alias
-            sorted_hosts = sorted(
-                hosts,
-                key=lambda x: x.alias.upper()
-            )
-
-            formatted_payload = [host.to_dict() for host in sorted_hosts]
-
             # Chamada síncrona para a API
-            self.api.enviar_aliases_para_exportacao(formatted_payload)
+            self.api.enviar_aliases_para_exportacao(payload)
+            
             logger.info("Hosts AnyDesk exportados com sucesso.")
-            logger.debug(f"API: {formatted_payload}")
+            logger.debug(f"Payload enviado: {payload}")
             return True
-
+            
         except Exception:
-            logger.exception(f"Erro ao exportar hosts ANY")
+            logger.exception("Erro ao exportar hosts para a API.")
             return False
+            
+    def export_hosts(self) -> bool:
+        hosts = self._load_hosts()
+        
+        if not hosts:
+            return False
+
+        return self._send_hosts(hosts)
+    
+    
 
     def import_hosts(self) -> bool:
         """Busca os hosts da API e grava no arquivo local apenas os inexistentes.
@@ -124,7 +120,7 @@ class AnydeskService:
             ]
 
             # 3. Lê hosts locais existentes
-            local_hosts = self.get_local_hosts()
+            local_hosts = self._load_hosts()
 
             # 4. Mescla mantendo locais e adicionando apenas registros não existentes
                         # 3. Mescla utilizando o id_connect como chave
