@@ -10,12 +10,14 @@ API_URL = "https://ids-connect.onrender.com"
 
 
 class ApiAccess:
-
     def __init__(self, api_url=API_URL):
         self.api_url = api_url
         self.busca_id = 0
         self.lock = threading.Lock()
 
+    # -------------------
+    # AUXILIARES
+    # -------------------
     def _executar_thread(self, funcao, nome):
         threading.Thread(
             target=funcao,
@@ -45,6 +47,9 @@ class ApiAccess:
 
         return resposta.json()
 
+    # -------------------
+    # BUSCAR COMPUTADOR
+    # -------------------
     def buscar_computadores(self, texto: str, callback= lambda x: logger.info(x)):
 
         with self.lock:
@@ -97,65 +102,31 @@ class ApiAccess:
             "busca-alias"
         )
 
-    def importar_all(self, callback= lambda x: logger.info(x)):
-
-        def tarefa():
-
-            try:
-
-                dados = self._get_json(
-                    f"{self.api_url}/import"
-                )
-
-                aliases = dados.get("aliases", [])
-                
-                callback(aliases)
-
-
-            except Exception as erro:
-                logger.error(f"Erro import: {erro}")
-
-
-
-        self._executar_thread(
-            tarefa,
-            "import-anydesk"
-        )
-
-    def obter_aliases_para_importacao(self) -> list[dict]:
+    # -------------------
+    # IMPORTAÇÃO
+    # -------------------
+    def importar_rust_aliases(self) -> list[dict]:
         """Busca de forma síncrona os aliases da API para importação.
 
         Returns:
             list[dict]: Lista de dicionários representando os aliases recebidos.
         """
-        dados = self._get_json(f"{self.api_url}/import")
+        dados = self._get_json(f"{self.api_url}/rustdesk/import")
+        return dados.get("aliases", [])
+    
+    def importar_any_aliases(self) -> list[dict]:
+        """Busca de forma síncrona os aliases da API para importação.
+
+        Returns:
+            list[dict]: Lista de dicionários representando os aliases recebidos.
+        """
+        dados = self._get_json(f"{self.api_url}/anydesk/import")
         return dados.get("aliases", [])
 
-    def exportar_all(self, aliases: list[dict], callback = lambda x: logger.info(x)):
 
-        def tarefa():
-            try:
-
-                payload = {
-                    "aliases": aliases
-                }
-
-                resposta = self._post_json(
-                    f"{self.api_url}/export",
-                    json=payload
-                )
-
-                callback(resposta)
-
-            except Exception as erro:
-                logger.error(f"Erro export: {erro}")
-
-
-        self._executar_thread(
-            tarefa,
-            "export-anydesk"
-        )
-
+    # -------------------
+    # EXPORTAÇÃO
+    # -------------------
     def enviar_aliases_para_exportacao(self, aliases: list[dict]) -> dict:
         """Exporta de forma síncrona a lista de aliases para a API.
 
@@ -166,7 +137,61 @@ class ApiAccess:
             dict: Resposta da API parseada em formato JSON.
         """
         payload = {"aliases": aliases}
-        return self._post_json(f"{self.api_url}/export", json=payload)
+        return self._post_json(f"{self.api_url}/alias/export", json=payload)
 
 
 api = ApiAccess()
+
+
+
+    # def importar_all(self, callback= lambda x: logger.info(x)):
+
+    #     def tarefa():
+
+    #         try:
+
+    #             dados = self._get_json(
+    #                 f"{self.api_url}/import"
+    #             )
+
+    #             aliases = dados.get("aliases", [])
+                
+    #             callback(aliases)
+
+
+    #         except Exception as erro:
+    #             logger.error(f"Erro import: {erro}")
+
+
+
+    #     self._executar_thread(
+    #         tarefa,
+    #         "import-anydesk"
+    #     )
+    
+    
+    
+    # def exportar_all(self, aliases: list[dict], callback = lambda x: logger.info(x)):
+
+    #     def tarefa():
+    #         try:
+
+    #             payload = {
+    #                 "aliases": aliases
+    #             }
+
+    #             resposta = self._post_json(
+    #                 f"{self.api_url}/alias/export",
+    #                 json=payload
+    #             )
+
+    #             callback(resposta)
+
+    #         except Exception as erro:
+    #             logger.error(f"Erro export: {erro}")
+
+
+        # self._executar_thread(
+        #     tarefa,
+        #     "export-anydesk"
+        # )

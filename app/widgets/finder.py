@@ -3,8 +3,8 @@ import threading
 import logging
 import customtkinter as ctk
 
-from app.anydesk.Service import any_mock as any_service
-from app.rustdesk.Service import rust_mock as rust_service
+from app.anydesk.Service import any_service
+from app.rustdesk.Service import rust_service
 
 from app.service.api import api
 from app.store.pc_store import pc_store
@@ -133,7 +133,7 @@ class FindPc(ctk.CTkFrame):
             self.after_cancel(self.timer_busca)
 
         # se tiver 3 ou menos caracteres limpa a lista
-        if len(texto) <= 3:
+        if len(texto) <= 1:
             self.ultima_busca = None
             pc_store.set_pcs([])
             return
@@ -190,12 +190,12 @@ class FindPc(ctk.CTkFrame):
         if sucesso_any:
             logger.info("Exportação ANY concluída com sucesso.")
         else:
-            logger.error("Erro ao exportar ANY os computadores.")
+            logger.error("Erro ao exportar ANY")
             
         if sucesso_rust:
             logger.info("Exportação RUST concluída com sucesso.") 
         else:
-            logger.error("Erro ao exportar RUST os computadores.")    
+            logger.error("Erro ao exportar RUST.")    
 
     def _exportar_thread(self):
         try:
@@ -213,16 +213,20 @@ class FindPc(ctk.CTkFrame):
         )
 
     def exportar(self):
+        # Desabilita botões
         self.btn_exportar.configure(state="disabled")
         self.btn_importar.configure(state="disabled")
         
+        # Pega tempo inicial
         self.loading_start = time.time()
         
+        # Cria tela de carregamento
         self.loading = LoadingDialog(
             self, 
             "Exportando hosts..."
         )
 
+        # Tread para executar a função exportar thread 
         threading.Thread(
             target=self._exportar_thread,
             daemon=True

@@ -10,11 +10,11 @@ logger = logging.getLogger(__name__)
 
 class MockAnydesk():
     def export_hosts(self):
-        logger.debug("EXPORT MOCK")
+        logger.debug("EXPORT ANY MOCK")
         return True
     
     def import_hosts(self):
-        logger.debug("IMPORT MOCK")
+        logger.debug("IMPORT ANY MOCK")
         return True
 
 
@@ -55,10 +55,14 @@ class AnydeskService:
                     result = self.parser.parse_roster_line(line)
                     if result:
                         _, items = result
-                        logger.debug("Arquivo de hosts do AnyDesk lido")
+                        logger.info("Arquivo de hosts do AnyDesk lido")
+                        logger.debug(f"Items lidos: {items}")
                         return items
+                    
         except Exception as e:
             logger.error(f"Erro ao obter hosts locais: {e}")
+        
+        logger.warning("Nenhum host local encontrado para exportação.")
         return []
 
     def export_hosts(self) -> bool:
@@ -84,7 +88,7 @@ class AnydeskService:
             # Chamada síncrona para a API
             self.api.enviar_aliases_para_exportacao(formatted_payload)
             logger.info("Hosts AnyDesk exportados com sucesso.")
-            logger.debug(formatted_payload)
+            logger.debug(f"API: {formatted_payload}")
             return True
 
         except Exception:
@@ -104,13 +108,12 @@ class AnydeskService:
             self.fm.backup()
 
             # 2. Busca hosts remotos da API (chamada síncrona)
-            remote_items = self.api.obter_aliases_para_importacao()
-            remote_items = [
-                item
-                for item in remote_items
-                if item.get("provider", "ANY") == "ANY"
-            ]
+            remote_items = self.api.importar_any_aliases()
+            
+            logger.info("Host Any Buscados")
+            logger.debug(f"API: {remote_items}")
 
+            # Transformando em objetos HostDTO
             remote_hosts = [
                 HostDTO(
                     id_connect=int(item["id_connect"]),
@@ -124,25 +127,18 @@ class AnydeskService:
             local_hosts = self.get_local_hosts()
 
             # 4. Mescla mantendo locais e adicionando apenas registros não existentes
-            local_ids = {h.id_connect for h in local_hosts}
-            local_aliases_lower = {h.alias.lower() for h in local_hosts if h.alias}
+                        # 3. Mescla utilizando o id_connect como chave
+            merged = {
+                item.id_connect: item
+                for item in local_hosts
+            }
 
-            merged_hosts = list(local_hosts)
+            for item in remote_hosts:
+                merged[item.id_connect] = item
 
-            for rh in remote_hosts:
-                # Verifica se o ID ou Alias já existe localmente
-                id_exists = rh.id_connect in local_ids
-                alias_exists = rh.alias.lower() in local_aliases_lower if rh.alias else False
-
-                if not id_exists and not alias_exists:
-                    merged_hosts.append(rh)
-                    local_ids.add(rh.id_connect)
-                    if rh.alias:
-                        local_aliases_lower.add(rh.alias.lower())
-
-            # 5. Ordena todos os registros mesclados por alias
+            # 4. Ordena pelo alias
             sorted_hosts = sorted(
-                merged_hosts,
+                merged.values(),
                 key=lambda x: x.alias.lower()
             )
 

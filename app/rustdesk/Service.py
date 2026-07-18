@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 class RustMock():
     def export_hosts(self):
-        logger.debug("EXPORT MOCK")
+        logger.debug("EXPORT RUST MOCK")
         return True
     
     def import_hosts(self):
-        logger.debug("IMPORT MOCK")
+        logger.debug("IMPORT RUST MOCK")
         return True
 
 
@@ -40,8 +40,8 @@ class RustdeskService:
         # Recupera uma lista de objetos HostDTO
         try:
             items = self.pm.read_peers()
-            logger.debug(f"items: {items}")
-            logger.debug("Arquivo de host do RustDesk lido")
+            logger.info("Arquivo de host do RustDesk lido")
+            logger.debug(f"Items lidos: {items}")
             
         except Exception as e:
             logger.error(f"Erro ao obter hosts locais: {e}")
@@ -71,7 +71,7 @@ class RustdeskService:
             self.api.enviar_aliases_para_exportacao(formated)
             
             logger.info("Hosts RustDesk exportados com sucesso.")        
-            logger.debug(formated)
+            logger.debug(f"API: {formated}")
             
             return True
         
@@ -88,14 +88,12 @@ class RustdeskService:
         """
         try:
             # 1. Busca hosts da API
-            remote_items = self.api.obter_aliases_para_importacao()
+            remote_items = self.api.importar_rust_aliases()
 
-            remote_items = [
-                item
-                for item in remote_items
-                if item.get("provider") == "RUST"
-            ]
+            logger.info("Host Rust Buscados")
+            logger.debug(f"API: {remote_items}")
 
+            # Transformando em objetos HostDTO
             remote_hosts = [
                 HostDTO(
                     id_connect=int(item["id_connect"]),
