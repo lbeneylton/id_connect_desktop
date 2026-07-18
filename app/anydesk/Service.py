@@ -8,6 +8,12 @@ from app.service.api import ApiAccess, api
 
 logger = logging.getLogger(__name__)
 
+class MockAnydesk():
+    def export_hosts(self):
+        return False
+    
+    def import_hosts(self):
+        return False
 
 class AnydeskService:
     """Orquestra a sincronização (importação/exportação) de hosts entre arquivo local e API.
@@ -76,8 +82,8 @@ class AnydeskService:
             logger.info("Hosts exportados com sucesso.")
             return True
 
-        except Exception as e:
-            logger.error(f"Erro ao exportar hosts: {e}")
+        except Exception:
+            logger.exception(f"Erro ao exportar hosts")
             return False
 
     def import_hosts(self) -> bool:
@@ -94,11 +100,17 @@ class AnydeskService:
 
             # 2. Busca hosts remotos da API (chamada síncrona)
             remote_items = self.api.obter_aliases_para_importacao()
+            remote_items = [
+                item
+                for item in remote_items
+                if item.get("provider", "ANY") == "ANY"
+            ]
+
             remote_hosts = [
                 HostDTO(
                     id_connect=int(item["id_connect"]),
                     alias=item["alias"],
-                    provider=item.get("provider", "ANY")
+                    provider="ANY"
                 )
                 for item in remote_items
             ]
@@ -145,9 +157,11 @@ class AnydeskService:
             logger.info("Importação de novos hosts finalizada com sucesso.")
             return True
 
-        except Exception as e:
-            logger.error(f"Erro na importação de hosts: {e}")
+        except Exception:
+            logger.exception(f"Erro na importação de hosts")
             return False
 
 
-service = AnydeskService()
+any_service = AnydeskService()
+
+any_mock =AnydeskService()

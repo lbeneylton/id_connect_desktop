@@ -100,7 +100,7 @@ class ApiAccess:
             try:
 
                 dados = self._get_json(
-                    f"{self.api_url}/anydesk/import"
+                    f"{self.api_url}/import"
                 )
 
                 aliases = dados.get("aliases", [])
@@ -124,7 +124,7 @@ class ApiAccess:
         Returns:
             list[dict]: Lista de dicionários representando os aliases recebidos.
         """
-        dados = self._get_json(f"{self.api_url}/anydesk/import")
+        dados = self._get_json(f"{self.api_url}/import")
         return dados.get("aliases", [])
 
     def exportar_all(self, aliases: list[dict], callback = lambda x: logger.info(x)):
@@ -137,7 +137,7 @@ class ApiAccess:
                 }
 
                 resposta = self._post_json(
-                    f"{self.api_url}/anydesk/export",
+                    f"{self.api_url}/export",
                     json=payload
                 )
 
@@ -162,7 +162,7 @@ class ApiAccess:
             dict: Resposta da API parseada em formato JSON.
         """
         payload = {"aliases": aliases}
-        return self._post_json(f"{self.api_url}/anydesk/export", json=payload)
+        return self._post_json(f"{self.api_url}/export", json=payload)
 
 
 api = ApiAccess()

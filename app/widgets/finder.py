@@ -3,7 +3,9 @@ import threading
 import logging
 import customtkinter as ctk
 
-from app.anydesk.Service import service
+from app.anydesk.Service import any_mock as any_service
+from app.rustdesk.Service import rust_mock as rust_service
+
 from app.service.api import api
 from app.store.pc_store import pc_store
 
@@ -162,7 +164,7 @@ class FindPc(ctk.CTkFrame):
     # -----------------
     # Exportação
     # -----------------
-    def _fim_exportacao(self, sucesso):
+    def _fim_exportacao(self, sucesso_any, sucesso_rust):
         tempo_minimo = 1.0  # segundos
 
         tempo_passado = time.time() - self.loading_start
@@ -172,7 +174,7 @@ class FindPc(ctk.CTkFrame):
 
             self.after(
                 espera,
-                lambda: self._fim_exportacao(sucesso)
+                lambda: self._fim_exportacao(sucesso_any, sucesso_rust)
             )
             return        
         
@@ -185,23 +187,29 @@ class FindPc(ctk.CTkFrame):
         self.btn_exportar.configure(state="normal")
         self.btn_importar.configure(state="normal")
 
-        if sucesso:
-            logger.info("Exportação concluída com sucesso.")
-            return 
+        if sucesso_any:
+            logger.info("Exportação ANY concluída com sucesso.")
         else:
-            logger.error("Erro ao exportar os computadores.")
+            logger.error("Erro ao exportar ANY os computadores.")
+            
+        if sucesso_rust:
+            logger.info("Exportação RUST concluída com sucesso.") 
+        else:
+            logger.error("Erro ao exportar RUST os computadores.")    
 
     def _exportar_thread(self):
         try:
-            sucesso = service.export_hosts()
+            sucesso_any = any_service.export_hosts()
+            sucesso_rust = rust_service.export_hosts()
             
         except Exception as e:
-            logger.exception(f"Erro exportação: {e}")
-            sucesso = False
+            logger.exception(f"Erro durante a exportação")
+            sucesso_any = False
+            sucesso_rust = False
 
         self.after(
             0,
-            lambda: self._fim_exportacao(sucesso)
+            lambda: self._fim_exportacao(sucesso_any, sucesso_rust)
         )
 
     def exportar(self):
@@ -224,7 +232,7 @@ class FindPc(ctk.CTkFrame):
     # -----------------
     # Importação
     # -----------------        
-    def _fim_importacao(self, sucesso):
+    def _fim_importacao(self, sucesso_any, sucesso_rust):
         tempo_minimo = 1.0  # segundos
 
         tempo_passado = time.time() - self.loading_start
@@ -234,7 +242,7 @@ class FindPc(ctk.CTkFrame):
 
             self.after(
                 espera,
-                lambda: self._fim_importacao(sucesso)
+                lambda: self._fim_importacao(sucesso_any, sucesso_rust)
             )
             return
         
@@ -246,23 +254,29 @@ class FindPc(ctk.CTkFrame):
         self.btn_exportar.configure(state="normal")
         self.btn_importar.configure(state="normal")
 
-        if sucesso:
-            logger.info("Importação concluída com sucesso.")
+        if sucesso_any:
+            logger.info("Importação ANY concluída com sucesso.")
         else:
-            logger.error("Erro ao importar os computadores.")
-        
+            logger.error("Erro ao importar ANY os computadores.")
+
+        if sucesso_rust:
+            logger.info("Importação RUST concluída com sucesso.")
+        else:
+            logger.error("Erro ao importar RUST os computadores.")   
         
     def _importar_thread(self):
         try:
-            sucesso = service.import_hosts()
+            sucesso_any = any_service.import_hosts()
+            sucesso_rust = rust_service.import_hosts()
 
         except Exception as e:
-            logger.exception(f"Erro importação: {e}")
-            sucesso = False
+            logger.exception(f"Erro durante a importação")
+            sucesso_any = False
+            sucesso_rust = False
 
         self.after(
             0,
-            lambda: self._fim_importacao(sucesso)
+            lambda: self._fim_importacao(sucesso_any, sucesso_rust)
         )
 
     def importar(self):

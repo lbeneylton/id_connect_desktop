@@ -1,7 +1,6 @@
 """Gerencia a leitura dos arquivos de peers."""
 
 import os
-import json
 import toml
 import logging
 
