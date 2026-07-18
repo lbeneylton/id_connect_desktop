@@ -30,54 +30,53 @@ class RustdeskService:
         self.api = api
 
 
-    def export_hosts(self) -> bool:
-        """
-        Recupera os rosters do arquivo
-        Organiza em ordem alfabetica
-        Cria o json com historico
-        """
-        
-        # Recupera uma lista de objetos HostDTO
+    def _load_hosts(self):
         try:
-            items = self.pm.read_peers()
-            logger.info("Arquivo de host do RustDesk lido")
-            logger.debug(f"Items lidos: {items}")
+            hosts = self.pm.read_peers()
             
-        except Exception as e:
-            logger.error(f"Erro ao obter hosts locais: {e}")
+            logger.info("Arquivo de hosts do RustDesk lido.")
+            logger.debug("Itens lidos: %s", hosts)
 
-        if not items:
-            logger.warning("Nenhum host local encontrado para exportação.")
-            return False
+            if not hosts:
+                logger.warning("Nenhum host local encontrado para exportação.")
+                return None
 
-        # Ordena alfabeticamente pelo alias (desnecessario talvez)
-        sorted_items = sorted(
-            items,
-            key=lambda x: x.alias.upper()
-        )
-    
+            return hosts
+
+        except Exception:
+            
+            logger.exception("Erro ao obter hosts locais.")
+            return None
+
+    def _send_hosts(self, hosts: list[HostDTO]) -> bool:
         
-        try:  
-            formated = []
-            for item in sorted_items:
-                formated.append(
-                    {
-                        "id_connect": int(item.id_connect),
-                        "alias": item.alias,
-                        "provider": item.provider,
-                    }
-                )
+        # Cria o payload apenas se alias valido
+        payload = [
+            host.to_dict()
+            for host in hosts
+            if host.alias_valido
+        ]
+
+        try:
+            self.api.enviar_aliases_para_exportacao(payload)
             
-            self.api.enviar_aliases_para_exportacao(formated)
-            
-            logger.info("Hosts RustDesk exportados com sucesso.")        
-            logger.debug(f"API: {formated}")
-            
+            logger.info("Hosts RustDesk exportados com sucesso.")
+            logger.debug("Payload enviado: %s", payload)
             return True
-        
-        except Exception as e:
-            logger.exception("Erro ao exportar hosts RUST")
+
+        except Exception:
+            
+            logger.exception("Erro ao exportar hosts para a API.")
             return False
+
+    def export_hosts(self) -> bool:
+        hosts = self._load_hosts()
+        if not hosts:
+            return False
+
+        return self._send_hosts(hosts)
+
+
 
 
     def import_hosts(self) -> bool:

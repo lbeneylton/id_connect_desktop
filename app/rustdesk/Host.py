@@ -23,3 +23,6 @@ class HostDTO:
             "provider": self.provider,
         }
 
+    @property
+    def alias_valido(self) ->bool:
+        return not self.alias.isdigit()
