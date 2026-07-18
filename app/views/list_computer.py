@@ -19,7 +19,7 @@ class Computadores(ctk.CTkFrame):
 
         self._adicionar_header()
         self._criar_scroll()
-        self._carregar_computadores()
+        
 
     def _adicionar_header(self):
         self.label_pcs = ctk.CTkLabel(
@@ -64,7 +64,7 @@ class Computadores(ctk.CTkFrame):
         )
 
     def atualizar(self):
-        logger.info("Atualizando lista de computadores")
+        logger.debug("Realizando Pesquisa de computador") 
         pcs = pc_store.get_pcs()
 
         # remove cards antigos, mas preserva o label de vazio
@@ -97,3 +97,8 @@ class Computadores(ctk.CTkFrame):
     def _ocultar_sem_pcs(self):
         if self.label_sem_pcs:
             self.label_sem_pcs.pack_forget()
+
+
+    def destroy(self):
+        pc_store.unsubscribe(self.atualizar)
+        super().destroy()

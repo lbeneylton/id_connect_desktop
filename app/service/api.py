@@ -1,6 +1,5 @@
 import requests
 import threading
-import json
 import time
 import logging
 
@@ -53,7 +52,6 @@ class ApiAccess:
             id_atual = self.busca_id
 
         def tarefa():
-
             inicio = time.time()
 
             try:
@@ -68,24 +66,30 @@ class ApiAccess:
                     "aliases",
                     []
                 )
+                
+                resultado = dados.get("aliases", [])
 
-            except Exception as erro:
+            except Exception:
+                logger.exception(f"Erro busca")
+                return
 
-                logger.error(f"Erro busca: {erro}")
-
-                resultado = []
 
             logger.info(
                 f"Tempo API {time.time() - inicio:.2f}s"
             )
 
-            # descarta resposta velha
-            if id_atual != self.busca_id:
-                logger.warning(
-                    f"Busca ignorada: {texto}"
-                )
-                return
+            # Descarta respostas de buscas antigas
+            with self.lock:
+                if id_atual != self.busca_id:
+                    logger.debug(
+                        f"Busca ignorada: {texto}"
+                    )
+                    return
 
+            if not resultado:
+                logger.warning("Nenhum computador encontrado")
+
+            logger.info(resultado)
             callback(resultado)
 
         self._executar_thread(
