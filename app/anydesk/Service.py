@@ -92,13 +92,6 @@ class AnydeskService:
     
 
     def import_hosts(self) -> bool:
-        """Busca os hosts da API e grava no arquivo local apenas os inexistentes.
-
-        Realiza o backup do arquivo local antes da escrita.
-
-        Returns:
-            bool: True se a importação foi concluída com sucesso, False caso contrário.
-        """
         try:
             # 1. Faz backup preventivo do arquivo atual
             self.fm.backup()

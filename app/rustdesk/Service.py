@@ -78,11 +78,6 @@ class RustdeskService:
 
 
     def import_hosts(self) -> bool:
-        """Busca os hosts da API e grava os peers localmente.
-
-        Returns:
-            bool: True se a importação foi concluída com sucesso, False caso contrário.
-        """
         try:
             # 1. Busca hosts da API
             remote_items = self.api.importar_rust_aliases()
