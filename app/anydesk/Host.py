@@ -13,7 +13,7 @@ class HostDTO:
     """
     id_connect: int
     alias: str
-    provider: str = "ANY"
+    provider: str
 
     def to_dict(self) -> dict:
         """Converte o DTO para um dicionário compatível com a API."""
