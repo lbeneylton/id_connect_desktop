@@ -10,10 +10,13 @@ logger = logging.getLogger(__name__)
 
 class MockAnydesk():
     def export_hosts(self):
-        return False
+        logger.debug("EXPORT MOCK")
+        return True
     
     def import_hosts(self):
-        return False
+        logger.debug("IMPORT MOCK")
+        return True
+
 
 class AnydeskService:
     """Orquestra a sincronização (importação/exportação) de hosts entre arquivo local e API.
@@ -52,6 +55,7 @@ class AnydeskService:
                     result = self.parser.parse_roster_line(line)
                     if result:
                         _, items = result
+                        logger.debug("Arquivo de hosts do AnyDesk lido")
                         return items
         except Exception as e:
             logger.error(f"Erro ao obter hosts locais: {e}")
@@ -79,11 +83,12 @@ class AnydeskService:
 
             # Chamada síncrona para a API
             self.api.enviar_aliases_para_exportacao(formatted_payload)
-            logger.info("Hosts exportados com sucesso.")
+            logger.info("Hosts AnyDesk exportados com sucesso.")
+            logger.debug(formatted_payload)
             return True
 
         except Exception:
-            logger.exception(f"Erro ao exportar hosts")
+            logger.exception(f"Erro ao exportar hosts ANY")
             return False
 
     def import_hosts(self) -> bool:
@@ -163,5 +168,4 @@ class AnydeskService:
 
 
 any_service = AnydeskService()
-
-any_mock =AnydeskService()
+any_mock =MockAnydesk()

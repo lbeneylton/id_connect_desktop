@@ -12,9 +12,11 @@ logger = logging.getLogger(__name__)
 
 class RustMock():
     def export_hosts(self):
+        logger.debug("EXPORT MOCK")
         return True
     
     def import_hosts(self):
+        logger.debug("IMPORT MOCK")
         return True
 
 
@@ -36,9 +38,16 @@ class RustdeskService:
         """
         
         # Recupera uma lista de objetos HostDTO
-        items = self.pm.read_peers()
+        try:
+            items = self.pm.read_peers()
+            logger.debug(f"items: {items}")
+            logger.debug("Arquivo de host do RustDesk lido")
+            
+        except Exception as e:
+            logger.error(f"Erro ao obter hosts locais: {e}")
 
         if not items:
+            logger.warning("Nenhum host local encontrado para exportação.")
             return False
 
         # Ordena alfabeticamente pelo alias (desnecessario talvez)
@@ -59,12 +68,16 @@ class RustdeskService:
                     }
                 )
             
-            self.api.exportar_all(formated)        
+            self.api.enviar_aliases_para_exportacao(formated)
+            
+            logger.info("Hosts RustDesk exportados com sucesso.")        
+            logger.debug(formated)
+            
+            return True
+        
         except Exception as e:
-            logger.exception("Erro ao exportar hosts")
+            logger.exception("Erro ao exportar hosts RUST")
             return False
-
-        return True
 
 
     def import_hosts(self) -> bool:
@@ -125,5 +138,4 @@ class RustdeskService:
 
 
 rust_service = RustdeskService()
-
 rust_mock = RustMock()
