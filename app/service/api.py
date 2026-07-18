@@ -2,7 +2,10 @@ import requests
 import threading
 import json
 import time
+import logging
 
+# Configuração do Logger
+logger = logging.getLogger(__name__)
 
 API_URL = "https://ids-connect.onrender.com"
 
@@ -68,22 +71,18 @@ class ApiAccess:
 
             except Exception as erro:
 
-                print(
-                    "Erro busca:",
-                    erro
-                )
+                logger.error(f"Erro busca: {erro}")
 
                 resultado = []
 
-            print(
+            logger.info(
                 f"Tempo API {time.time() - inicio:.2f}s"
             )
 
             # descarta resposta velha
             if id_atual != self.busca_id:
-                print(
-                    "Busca ignorada:",
-                    texto
+                logger.warning(
+                    f"Busca ignorada: {texto}"
                 )
                 return
 
@@ -110,7 +109,7 @@ class ApiAccess:
 
 
             except Exception as erro:
-                print("Erro import:", erro)
+                logger.error(f"Erro import: {erro}")
 
 
 
@@ -119,7 +118,16 @@ class ApiAccess:
             "import-anydesk"
         )
 
-    def exportar_all(self, aliases: list[dict], callback = lambda x: print(x)):
+    def obter_aliases_para_importacao(self) -> list[dict]:
+        """Busca de forma síncrona os aliases da API para importação.
+
+        Returns:
+            list[dict]: Lista de dicionários representando os aliases recebidos.
+        """
+        dados = self._get_json(f"{self.api_url}/anydesk/import")
+        return dados.get("aliases", [])
+
+    def exportar_all(self, aliases: list[dict], callback = lambda x: logger.info(x)):
 
         def tarefa():
             try:
@@ -136,7 +144,7 @@ class ApiAccess:
                 callback(resposta)
 
             except Exception as erro:
-                print("Erro export:", erro)
+                logger.error(f"Erro export: {erro}")
 
 
         self._executar_thread(
@@ -144,6 +152,17 @@ class ApiAccess:
             "export-anydesk"
         )
 
+    def enviar_aliases_para_exportacao(self, aliases: list[dict]) -> dict:
+        """Exporta de forma síncrona a lista de aliases para a API.
+
+        Args:
+            aliases (list[dict]): Lista de aliases em formato dicionário.
+
+        Returns:
+            dict: Resposta da API parseada em formato JSON.
+        """
+        payload = {"aliases": aliases}
+        return self._post_json(f"{self.api_url}/anydesk/export", json=payload)
+
 
 api = ApiAccess()
-

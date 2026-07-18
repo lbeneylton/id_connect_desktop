@@ -1,7 +1,10 @@
+import logging
 import customtkinter as ctk
 
 from app.store.pc_store import pc_store
 from app.widgets.card import Card
+
+logger = logging.getLogger(__name__)
 
 
 class Computadores(ctk.CTkFrame):
@@ -61,7 +64,7 @@ class Computadores(ctk.CTkFrame):
         )
 
     def atualizar(self):
-        print("Atualizando lista")
+        logger.info("Atualizando lista de computadores")
         pcs = pc_store.get_pcs()
 
         # remove cards antigos, mas preserva o label de vazio
